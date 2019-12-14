@@ -110,7 +110,9 @@ scorekeeper=class:new{
   self.hvalue+=v
  end,
  update=function(self)
+  local old=self.kvalue
   self.kvalue+=flr(self.hvalue/10)
+  if (flr(old/4)~=flr(self.kvalue/4)) orb:new()
   self.hvalue%=10
   self.value=tostr(self.kvalue>0 and self.kvalue or "")..tostr(self.hvalue).."00"
   if (self.value=="000") self.value="0"
@@ -118,7 +120,6 @@ scorekeeper=class:new{
    if self.kvalue>highscore.kvalue or (self.kvalue==highscore.kvalue and self.hvalue>highscore.hvalue) then
     self.highscore=true
     dset(2,1)
-    music(12)
    end
   elseif (clock.now*1000)%2==0 then
    local col
@@ -153,11 +154,13 @@ player=class:new{
  hbx=44,
  hby=76,
  hangtime=0,
+ boost=0,
  tmpscore={},
 	is_ground=function(self)
 	 return self.y>=68
 	end,
  update=function(self)
+  if (self.boost>0) self.boost=max(0,self.boost-clock.dt)
   self.step+=clock.dt*self.animspeed
   self.animstep=flr(self.step)%8
   self.frames.active=(self.midair and self.y<56) and self.frames.jumping or self.frames.running
@@ -197,7 +200,7 @@ player=class:new{
    end
    self.hangtime=0
   end
-  if score.highscore then
+  if self.boost>0 then
    if (flr(clock.now*20)~=flr(clock.old*20)) shadow:new()
   end
  end,
@@ -228,7 +231,7 @@ obstacle=class:new{
 		    _update=gameover_update
 		    _draw=gameover_draw
 		    music(-1)
-	   end
+   end
 	  end
 	  for i=y+hb2,y+hb4 do
 	   if get_distance(player.x+7.5,player.y+8,self.x+hb1,i)<=3.5 then
@@ -239,7 +242,7 @@ obstacle=class:new{
 	  end
 	 end
   if self.x==mid(44,self.x,52) then
-   if (not player.tmpscore[self]) player.tmpscore[self]=self.bonus
+   if (not player.tmpscore[self]) player.tmpscore[self]=self.bonus*(player.boost>0 and 2 or 1)
   end
 	 if x<24-self.w*8 then --check offscreen
 	  score:add(player.tmpscore[self])
@@ -324,7 +327,7 @@ dog=obstacle:new{
 	   end
 	  end
 	  if self.x==mid(44,self.x,52) then
-	   if (not player.tmpscore[self]) player.tmpscore[self]=self.bonus
+	   if (not player.tmpscore[self]) player.tmpscore[self]=self.bonus*(player.boost>0 and 2 or 1)
 	  end
 	 end
   if self.x<0-self.w*8 then
@@ -459,6 +462,41 @@ do
   item:new{cb=spawnbg}
  end
 end
+
+orb=class:new{
+ x=127,
+ y=36,
+ pal={8,9,11,12,14},
+ col=11,
+ size=2,
+ old={x=127,y=36},
+ init=function(self)
+  function self.new(self,o)
+   o=o or {}
+   self.__index=self
+   setmetatable(o,self)
+   o:init()
+   add(midground,o)
+   return o
+  end
+ end,
+	update=function(self)
+	 self.old.x=self.x
+	 self.old.y=self.y
+  self.y=36+cos(clock.now)*3
+  self.x-=spd*clock.dt
+		self.col=self.pal[ceil(rnd(5))]
+  if get_distance(player.x+7.5,player.y+8,self.x+1,self.y+1)<=4.5 then
+  	player.boost+=30
+  	del(midground,self)
+  	music(12)
+ 	end
+  if (self.x<20) del(midground,self)
+	end,
+	draw=function(self)
+	 circfill(self.x,self.y,self.size,self.col)
+	end
+}
 -->8
 --groups
 groups={
@@ -859,6 +897,7 @@ function game_start()
  score=scorekeeper:new()
  spd=40
  spdmod=0
+ boost=0
  foreground={}
  rearmidground={}
  midground={}
