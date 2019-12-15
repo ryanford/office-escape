@@ -3,809 +3,782 @@ version 18
 __lua__
 -- office escape
 function unpack(t,i,...)
- i=i or #t
- if (i==0) return ...
- return unpack(t,i-1,t[i],...)
+	i=i or #t
+	if (i==0) return ...
+	return unpack(t,i-1,t[i],...)
 end
 
 function centerx(str,nglyphs)
-  return 64-flr(#str*4)/2-(nglyphs or 0)
+	return 64-flr(#str*4)/2-(nglyphs or 0)
 end
 
 do
- local charmap={}
- local codes="\65\66\67\68\69\70\71\72\73\74\75\76\77\78\79\80\81\82\83\84\85\86\87\88\89\90"
- local ltrs="abcdefghijklmnopqrstuvwxyz"
- for i=1,26 do
-  charmap[sub(ltrs,i,i)]=sub(codes,i,i)
- end 
- function small(str)
-  local newstr=""
-  for i=1,#str do
-   local c=sub(str,i,i)
-   newstr=newstr..(charmap[c] and charmap[c] or c)
-  end
-  return newstr
- end  
+	local charmap={}
+	local codes="\65\66\67\68\69\70\71\72\73\74\75\76\77\78\79\80\81\82\83\84\85\86\87\88\89\90"
+	local ltrs="abcdefghijklmnopqrstuvwxyz"
+	for i=1,26 do
+		charmap[sub(ltrs,i,i)]=sub(codes,i,i)
+	end
+	function small(str)
+		local newstr=""
+		for i=1,#str do
+			local c=sub(str,i,i)
+			newstr=newstr..(charmap[c] and charmap[c] or c)
+		end
+		return newstr
+	end
 end
 
 function outline(str,x,y,c1,c2)
-  local pos={-1,1,-1,0,-1,-1,0,-1,0,1,1,1,1,-1,1,0}
-  for i=0,7 do
-   print(str,x+pos[1+2*i],y+pos[2+2*i],c1)
-  end
-  print(str,x,y,c2)
+		local pos={-1,1,-1,0,-1,-1,0,-1,0,1,1,1,1,-1,1,0}
+		for i=0,7 do
+			print(str,x+pos[1+2*i],y+pos[2+2*i],c1)
+		end
+		print(str,x,y,c2)
 end
 
 function split(str)
- local arr={}
- for i=1,#str do
-  add(arr,sub(str,i,i))
- end
- return arr
+	local arr={}
+	for i=1,#str do
+		add(arr,sub(str,i,i))
+	end
+	return arr
 end
 
 class={
- init=function(self)end,
- new=function(self,o)
-  o = o or {}
-  self.__index=self
-  setmetatable(o,self)
-  o:init()
-  return o
- end
+	init=function(self)end,
+	new=function(self,o)
+		o = o or {}
+		self.__index=self
+		setmetatable(o,self)
+		o:init()
+		return o
+	end
 }
 
 function get_distance(x1,y1,x2,y2)
- return sqrt((y2-y1)^2+(x2-x1)^2)
+	return sqrt((y2-y1)^2+(x2-x1)^2)
 end
 
 clock=class:new{
- old=0,
- now=0,
- dt=0,
- update=function(self)
-  self.old=self.now
-  self.now=t()
-  self.dt=self.now-self.old
- end,
- draw=function(self)
-  
- end,
+	old=0,
+	now=0,
+	dt=0,
+	update=function(self)
+		self.old=self.now
+		self.now=t()
+		self.dt=self.now-self.old
+	end,
+	draw=function(self)
+
+	end,
 }
 
 timer=clock:new{
- start=0,
- term=0,
- cb=function() end,
- init=function(self)
-  function self.new(self,o)
-   o=o or {}
-   self.__index=self
-   setmetatable(o,self)
-   o:init()
-   add(timers,o)
-   o.start=clock.now
-   o.term=o.start+o.term
-  end
- end,
- update=function(self)
-  if self.term<=clock.now then
-   del(timers,self)
-   return self:cb(self)
-  end
- end,
- draw=function(self)
---  print(self.term-self.now,10,17,7)
- end,
+	start=0,
+	term=0,
+	cb=function() end,
+	init=function(self)
+		function self.new(self,o)
+			o=o or {}
+			self.__index=self
+			setmetatable(o,self)
+			o:init()
+			add(timers,o)
+			o.start=clock.now
+			o.term=o.start+o.term
+		end
+	end,
+	update=function(self)
+		if self.term<=clock.now then
+			del(timers,self)
+			return self:cb(self)
+		end
+	end,
+	draw=function(self)
+	end,
 }
 
 scorekeeper=class:new{
- kvalue=0,
- hvalue=0,
- value="",
- col=15,
- cols={8,9,10,11,12,14},
- add=function(self,v)
-  self.hvalue+=v
- end,
- update=function(self)
-  local old=self.kvalue
-  self.kvalue+=flr(self.hvalue/10)
-  if (flr(old/4)~=flr(self.kvalue/4)) orb:new()
-  self.hvalue%=10
-  self.value=tostr(self.kvalue>0 and self.kvalue or "")..tostr(self.hvalue).."00"
-  if (self.value=="000") self.value="0"
-  if not self.highscore then
-   if self.kvalue>highscore.kvalue or (self.kvalue==highscore.kvalue and self.hvalue>highscore.hvalue) then
-    self.highscore=true
-    dset(2,1)
-   end
-  elseif (clock.now*1000)%2==0 then
-   local col
-   repeat
-    col=self.cols[ceil(rnd()*6)]
-   until col~=self.col
-   self.col=col
-  end
- end,
- draw=function(self)
-  outline(self.value,centerx(self.value),21,1,self.col)
- end
+	kvalue=0,
+	hvalue=0,
+	value="",
+	col=15,
+	cols={8,9,10,11,12,14},
+	add=function(self,v)
+		self.hvalue+=v
+	end,
+	update=function(self)
+		local old=self.kvalue
+		self.kvalue+=flr(self.hvalue/10)
+		if (flr(old/4)~=flr(self.kvalue/4)) orb:new()
+		self.hvalue%=10
+		self.value=tostr(self.kvalue>0 and self.kvalue or "")..tostr(self.hvalue).."00"
+		if (self.value=="000") self.value="0"
+		if not self.highscore then
+			if self.kvalue>highscore.kvalue or (self.kvalue==highscore.kvalue and self.hvalue>highscore.hvalue) then
+				self.highscore=true
+				dset(2,1)
+			end
+		elseif (clock.now*1000)%2==0 then
+			local col
+			repeat
+				col=self.cols[ceil(rnd()*6)]
+			until col~=self.col
+			self.col=col
+		end
+	end,
+	draw=function(self)
+		outline(self.value,centerx(self.value),21,1,self.col)
+	end
 }
 -->8
 -- classes
 player=class:new{
- step=0,
- animstep=0,
- animspeed=14,
- frames={
-  running={[0]=32,34,36,38,32,40,42,44},
-  jumping={[0]=0,2,4,6,8,10,12,14},
-  active={}
- },
- jumping=false,
- midair=false,
- x=40,
- y=68,
- w=2,
- h=2,
- dy=0,
- hbx=44,
- hby=76,
- hangtime=0,
- boost=0,
- tmpscore={},
+	step=0,
+	animstep=0,
+	animspeed=14,
+	frames={
+		running={[0]=32,34,36,38,32,40,42,44},
+		jumping={[0]=0,2,4,6,8,10,12,14},
+		active={}
+	},
+	jumping=false,
+	midair=false,
+	x=40,
+	y=68,
+	w=2,
+	h=2,
+	dy=0,
+	hbx=44,
+	hby=76,
+	hangtime=0,
+	boost=0,
+	tmpscore={},
 	is_ground=function(self)
-	 return self.y>=68
+		return self.y>=68
 	end,
- update=function(self)
-  if (self.boost>0) self.boost=max(0,self.boost-clock.dt)
-  self.step+=clock.dt*self.animspeed
-  self.animstep=flr(self.step)%8
-  self.frames.active=(self.midair and self.y<56) and self.frames.jumping or self.frames.running
-  --jumping and falling
-  if not self.midair and btn(4) then -- jump
-   self.jumping=true
-   self.dy-=4
-   self.jumping=true
-   self.midair=true
-   sfx(3)
-  elseif self.midair then
-   if self.jumping and btn(4) then -- continue upward acc
-    self.dy-=8*clock.dt
-    if (self.dy<-5) self.jumping=false -- max acc / liftoff
-   else -- dec
-    self.jumping=false
-    self.dy+=16*clock.dt
-   end
-   self.hangtime+=clock.dt
-  end
-  self.y+=self.dy
-  if self.y > 68 then -- land
-   self.midair=false
-   self.dy=0
-   self.y=68
-   particle:new{
-    x=self.x+4,
-    y=self.y+14,
-    size=3.5*self.hangtime,
-    area=rearmidground
-   }
-   for obs,bonus in pairs(self.tmpscore) do
-    if obs.x+obs.hitbox[3]<player.x+3 then
-     score:add(bonus)
-     player.tmpscore[obs]=0
-    end
-   end
-   self.hangtime=0
-  end
-  if self.boost>0 then
-   if (flr(clock.now*20)~=flr(clock.old*20)) shadow:new()
-  end
- end,
- draw=function(self)
-  spr(self.frames.active[self.animstep],self.x,self.y,self.w,self.h)
-  if (debug) circ(self.x+7.5,self.y+7.5,7,8)
- end,
+	update=function(self)
+		if (self.boost>0) self.boost=max(0,self.boost-clock.dt)
+		self.step+=clock.dt*self.animspeed
+		self.animstep=flr(self.step)%8
+		self.frames.active=(self.midair and self.y<56) and self.frames.jumping or self.frames.running
+		--jumping and falling
+		if not self.midair and btn(4) then -- jump
+			self.jumping=true
+			self.dy-=4
+			self.jumping=true
+			self.midair=true
+			sfx(3)
+		elseif self.midair then
+			if self.jumping and btn(4) then -- continue upward acc
+				self.dy-=8*clock.dt
+				if (self.dy<-5) self.jumping=false -- max acc / liftoff
+			else -- dec
+				self.jumping=false
+				self.dy+=16*clock.dt
+			end
+			self.hangtime+=clock.dt
+		end
+		self.y+=self.dy
+		if self.y > 68 then -- land
+			self.midair=false
+			self.dy=0
+			self.y=68
+			particle:new{
+				x=self.x+4,
+				y=self.y+14,
+				size=3.5*self.hangtime,
+				area=rearmidground
+			}
+			for obs,bonus in pairs(self.tmpscore) do
+				if obs.x+obs.hitbox[3]<player.x+3 then
+					score:add(bonus)
+					player.tmpscore[obs]=0
+				end
+			end
+			self.hangtime=0
+		end
+		if self.boost>0 then
+			if (flr(clock.now*20)~=flr(clock.old*20)) shadow:new()
+		end
+	end,
+	draw=function(self)
+		spr(self.frames.active[self.animstep],self.x,self.y,self.w,self.h)
+		if (debug) circ(self.x+7.5,self.y+7.5,7,8)
+	end,
 }
 
 obstacle=class:new{
- x=127,
- y=68,
- w=2,
- h=2,
- bonus=1,
- cb=function()end,
- init=function(self)
-  add(self.area or midground,self)
- end,
- update=function(self)
-  local m=spd*clock.dt
-  self.x-=m
-  local x,y=self.x,self.y
-  if x<60 then
-	  local hb1,hb2,hb3,hb4=unpack(self.hitbox)
-	  for i=x+hb1,x+hb3 do
-	   if get_distance(player.x+7.5,player.y+8,i,self.y+hb2)<=3.5 then
-		    _update=gameover_update
-		    _draw=gameover_draw
-		    music(-1)
-   end
-	  end
-	  for i=y+hb2,y+hb4 do
-	   if get_distance(player.x+7.5,player.y+8,self.x+hb1,i)<=3.5 then
-		    _update=gameover_update
-		    _draw=gameover_draw
-		    music(-1)
-	   end
-	  end
-	 end
-  if self.x==mid(44,self.x,52) then
-   if (not player.tmpscore[self]) player.tmpscore[self]=self.bonus*(player.boost>0 and 2 or 1)
-  end
-	 if x<24-self.w*8 then --check offscreen
-	  score:add(player.tmpscore[self])
-	  player.tmpscore[self]=nil
-	  del(self.area or midground,self)
-	  return self:cb()
-	 end
- end,
- draw=function(self)
-  spr(self.spr,self.x,self.y,self.w,self.h)
-  if debug then
-   local hbox1,hbox2,hbox3,hbox4=unpack(self.hitbox)
-   local x,y = self.x,self.y
-   if self.hitbox.shape=="rect" then
-    rect(x+hbox1,y+hbox2,x+hbox3,y+hbox4,8)
+	x=127,
+	y=68,
+	w=2,
+	h=2,
+	bonus=1,
+	cb=function()end,
+	init=function(self)
+		add(self.area or midground,self)
+	end,
+	update=function(self)
+		local m=spd*clock.dt
+		self.x-=m
+		local x,y=self.x,self.y
+		if x<60 then
+			local hb1,hb2,hb3,hb4=unpack(self.hitbox)
+			for i=x+hb1,x+hb3 do
+		if get_distance(player.x+7.5,player.y+8,i,self.y+hb2)<=3.5 then
+				_update=gameover_update
+				_draw=gameover_draw
+				music(-1)
+			end
+			end
+			for i=y+hb2,y+hb4 do
+		if get_distance(player.x+7.5,player.y+8,self.x+hb1,i)<=3.5 then
+				_update=gameover_update
+				_draw=gameover_draw
+				music(-1)
+		end
 			end
 		end
- end,
+		if self.x==mid(44,self.x,52) then
+			if (not player.tmpscore[self]) player.tmpscore[self]=self.bonus*(player.boost>0 and 2 or 1)
+		end
+		if x<24-self.w*8 then --check offscreen
+			score:add(player.tmpscore[self])
+			player.tmpscore[self]=nil
+			del(self.area or midground,self)
+			return self:cb()
+		end
+	end,
+	draw=function(self)
+		spr(self.spr,self.x,self.y,self.w,self.h)
+		if debug then
+			local hbox1,hbox2,hbox3,hbox4=unpack(self.hitbox)
+			local x,y = self.x,self.y
+			if self.hitbox.shape=="rect" then
+				rect(x+hbox1,y+hbox2,x+hbox3,y+hbox4,8)
+			end
+		end
+	end,
 }
 
 coworker=obstacle:new{
- hitbox={shape="rect",4,0,12,15},
- init=function(self)
-  add(self.area or midground,self)
-  self.spr=66+2*flr(rnd(4))
- end
+	hitbox={shape="rect",4,0,12,15},
+	init=function(self)
+		add(self.area or midground,self)
+		self.spr=66+2*flr(rnd(4))
+	end
 }
 
 watercooler=obstacle:new{
- spr=74,
- h=4,
- y=57,
- bonus=2,
- hitbox={shape="rect",1,0,14,26},
+	spr=74,
+	h=4,
+	y=57,
+	bonus=2,
+	hitbox={shape="rect",1,0,14,26},
 }
 
 cabinet=watercooler:new{
- spr=76,
- y=53,
- bonus=3,
- hitbox={shape="rect",1,0,14,29},
+	spr=76,
+	y=53,
+	bonus=3,
+	hitbox={shape="rect",1,0,14,29},
 }
 
 server=cabinet:new{
- spr=78
+	spr=78
 }
 
 dog=obstacle:new{
- spr=64,
- x=128,
- y=62,
- h=3,
- w=2,
- bonus=2,
- hitbox={shape="rect",2,0,14,21},
- update=function(self)
-  local x,y=self.x,self.y
-  local hb1,hb2,hb3,hb4=unpack(self.hitbox)
-  local area={midground,rearmidground,midground}
-	 for i=1,3 do
-	  fire:new{
-	   x=self.x+8*(i-1)+rnd(1),
-	   y=80,
-	   size=rnd()*4+1,
-	   col=({8,8,10})[ceil(rnd(3))],
-	   area=area[i],
-	  }
-	  for i=x+hb1,x+hb3 do
-	   if get_distance(player.x+8,player.y+8,i,y+hb2)<=3 then
-	    _update=gameover_update
-	    _draw=gameover_draw
-	    music(-1)
-	    return
-	   end
-	  end
-	  for i=y+hb2,y+hb4 do
-	   if get_distance(player.x+8,player.y+8,self.x+hb1,i)<=3 then
-	    _update=gameover_update
-	    _draw=gameover_draw
-	    music(-1)
-	    return
-	   end
-	  end
-	  if self.x==mid(44,self.x,52) then
-	   if (not player.tmpscore[self]) player.tmpscore[self]=self.bonus*(player.boost>0 and 2 or 1)
-	  end
-	 end
-  if self.x<0-self.w*8 then
-   del(self.area or midground,self)
-	  player.tmpscore[self]=nil
-   return self:cb()
-  end
-  self.x-=spd*clock.dt
- end,
+	spr=64,
+	x=128,
+	y=62,
+	h=3,
+	w=2,
+	bonus=2,
+	hitbox={shape="rect",2,0,14,21},
+	update=function(self)
+		local x,y=self.x,self.y
+		local hb1,hb2,hb3,hb4=unpack(self.hitbox)
+		local area={midground,rearmidground,midground}
+		for i=1,3 do
+			fire:new{
+		x=self.x+8*(i-1)+rnd(1),
+		y=80,
+		size=rnd()*4+1,
+		col=({8,8,10})[ceil(rnd(3))],
+		area=area[i],
+			}
+			for i=x+hb1,x+hb3 do
+		if get_distance(player.x+8,player.y+8,i,y+hb2)<=3 then
+			_update=gameover_update
+			_draw=gameover_draw
+			music(-1)
+			return
+		end
+			end
+			for i=y+hb2,y+hb4 do
+		if get_distance(player.x+8,player.y+8,self.x+hb1,i)<=3 then
+			_update=gameover_update
+			_draw=gameover_draw
+			music(-1)
+			return
+		end
+			end
+			if self.x==mid(44,self.x,52) then
+		if (not player.tmpscore[self]) player.tmpscore[self]=self.bonus*(player.boost>0 and 2 or 1)
+			end
+		end
+		if self.x<0-self.w*8 then
+			del(self.area or midground,self)
+			player.tmpscore[self]=nil
+			return self:cb()
+		end
+		self.x-=spd*clock.dt
+	end,
 }
 
 silouette=class:new{
- xs={127,121,133,114,140,115,139,109,145},
- spd=1.6,
- init=function(self)
-  self.xs={unpack(self.xs)}
-  add(foreground,self)
- end,
- update=function(self)
-  local m,xs=spd*self.spd*clock.dt,self.xs
-  
-  for i=1,9 do xs[i]-=m end
-  if xs[5]<24 then
-   del(foreground,self)
-  end 
- end,
- draw=function(self)
-  local xs=self.xs
-	 circfill(xs[1],72,10,1) -- skull
-	 circfill(xs[1],78,8,1) -- jaw
-	 circfill(xs[1],96,13,1) -- traps
-	 circfill(xs[6],93,6,1) -- left shoulder
-	 circfill(xs[7],93,6,1) -- right shoulder
-	 rectfill(xs[8],91,xs[9],104,1) -- body
- end,
+	xs={127,121,133,114,140,115,139,109,145},
+	spd=1.6,
+	init=function(self)
+		self.xs={unpack(self.xs)}
+		add(foreground,self)
+	end,
+	update=function(self)
+		local m,xs=spd*self.spd*clock.dt,self.xs
+
+		for i=1,9 do xs[i]-=m end
+		if xs[5]<24 then
+			del(foreground,self)
+		end
+	end,
+	draw=function(self)
+		local xs=self.xs
+		circfill(xs[1],72,10,1) -- skull
+		circfill(xs[1],78,8,1) -- jaw
+		circfill(xs[1],96,13,1) -- traps
+		circfill(xs[6],93,6,1) -- left shoulder
+		circfill(xs[7],93,6,1) -- right shoulder
+		rectfill(xs[8],91,xs[9],104,1) -- body
+	end,
 }
 
 title_office=class:new{
- x=35,
- y=0,
- draw=function(self)
-	 spr(137,self.x,flr(self.y),7,2)
- end
+	x=35,
+	y=0,
+	draw=function(self)
+		spr(137,self.x,flr(self.y),7,2)
+	end
 }
 
 title_escape=class:new{
- x=-20,
- y=56,
- draw=function(self)
-	 outline("e s c a p e",self.x,self.y,1,15)
+	x=-20,
+	y=56,
+	draw=function(self)
+		outline("e s c a p e",self.x,self.y,1,15)
 	end
 }
 
 bg=class:new{
- x=127,
- y=36,
- w=1,
- spd=.7,
- cb=function(self) chair:new() end,
- init=function(self)
-  function self.new(self,o)
-   o=o or {}
-   self.__index=self
-   setmetatable(o,self)
-   o:init()
-   add(background,o)
-   return o
-  end
- end,
- update=function(self)
-  local m=self.spd*spd*clock.dt
-  self.x-=m
-  local x,y=self.x,self.y
-	 if x+self.w*8<24 then
-	  del(background,self)
-	  return self:cb()
-	 end
- end,
- draw=function(self)
-  for i,row in pairs(self.tiles) do
-   for j,tile in pairs(row) do
-    spr(tile,self.x+8*(j-1),self.y+8*(i-1))
-   end
-  end
- end
+	x=127,
+	y=36,
+	w=1,
+	spd=.7,
+	cb=function(self) chair:new() end,
+	init=function(self)
+		function self.new(self,o)
+			o=o or {}
+			self.__index=self
+			setmetatable(o,self)
+			o:init()
+			add(background,o)
+			return o
+		end
+	end,
+	update=function(self)
+		local m=self.spd*spd*clock.dt
+		self.x-=m
+		local x,y=self.x,self.y
+		if x+self.w*8<24 then
+			del(background,self)
+			return self:cb()
+		end
+	end,
+	draw=function(self)
+		for i,row in pairs(self.tiles) do
+			for j,tile in pairs(row) do
+				spr(tile,self.x+8*(j-1),self.y+8*(i-1))
+			end
+		end
+	end
 }
 
 cubicle1=bg:new{
- tiles={
-  {176,128,129,129,129,129,181},
-  {128,130,145,145,128,130,146},
-  {144,146,145,145,144,146,146},
-  {160,162,166,166,160,162,177}
- },
- w=7,
+	tiles={
+		{176,128,129,129,129,129,181},
+		{128,130,145,145,128,130,146},
+		{144,146,145,145,144,146,146},
+		{160,162,166,166,160,162,177}
+	},
+	w=7,
 }
 
 cubicle2=cubicle1:new{
- tiles={
-  {176,128,129,129,129,129,181},
-  {128,129,129,130,145,145,164},
-  {144,145,145,146,145,145,164},
-  {160,161,161,162,165,165,178}
- }
+	tiles={
+		{176,128,129,129,129,129,181},
+		{128,129,129,130,145,145,164},
+		{144,145,145,146,145,145,164},
+		{160,161,161,162,165,165,178}
+	}
 }
 
 chair=bg:new{
- y=48,
- w=2,
- init=function(self)
-  self.spr=131+flr(rnd(2))*2
-  self.y=48+flr(rnd(8))
- end,
- draw=function(self)
-  spr(self.spr,self.x,self.y,2,2)
- end,
+	y=48,
+	w=2,
+	init=function(self)
+		self.spr=131+flr(rnd(2))*2
+		self.y=48+flr(rnd(8))
+	end,
+	draw=function(self)
+		spr(self.spr,self.x,self.y,2,2)
+	end,
 }
 
 wallclock=bg:new{
- y=36,
- cb=function(self) chair:new() end,
- draw=function(self)
-  spr(135,self.x,self.y)
- end,
+	y=36,
+	cb=function(self) chair:new() end,
+	draw=function(self)
+		spr(135,self.x,self.y)
+	end,
 }
 
 do
- local decor={cubicle1,cubicle2,chair,wallclock}
- 
- function spawnbg()
-  local item=decor[ceil(rnd(#decor))]
-  item:new{cb=spawnbg}
- end
+	local decor={cubicle1,cubicle2,chair,wallclock}
+
+	function spawnbg()
+		local item=decor[ceil(rnd(#decor))]
+		item:new{cb=spawnbg}
+	end
 end
 
 orb=class:new{
- x=127,
- y=36,
- pal={8,9,11,12,14},
- col=11,
- size=2,
- old={x=127,y=36},
- init=function(self)
-  function self.new(self,o)
-   o=o or {}
-   self.__index=self
-   setmetatable(o,self)
-   o:init()
-   add(midground,o)
-   return o
-  end
- end,
+	x=127,
+	y=36,
+	pal={8,9,11,12,14},
+	col=11,
+	size=2,
+	old={x=127,y=36},
+	init=function(self)
+		function self.new(self,o)
+			o=o or {}
+			self.__index=self
+			setmetatable(o,self)
+			o:init()
+			add(midground,o)
+			return o
+		end
+	end,
 	update=function(self)
-	 self.old.x=self.x
-	 self.old.y=self.y
-  self.y=36+cos(clock.now)*3
-  self.x-=spd*clock.dt
+		self.old.x=self.x
+		self.old.y=self.y
+		self.y=36+cos(clock.now)*3
+		self.x-=spd*clock.dt
 		self.col=self.pal[ceil(rnd(5))]
-  if get_distance(player.x+7.5,player.y+8,self.x+1,self.y+1)<=4.5 then
-  	player.boost+=30
-  	del(midground,self)
-  	music(12)
- 	end
-  if (self.x<20) del(midground,self)
+		if get_distance(player.x+7.5,player.y+8,self.x+1,self.y+1)<=4.5 then
+	player.boost+=30
+	del(midground,self)
+	music(12)
+	end
+		if (self.x<20) del(midground,self)
 	end,
 	draw=function(self)
-	 circfill(self.x,self.y,self.size,self.col)
+		circfill(self.x,self.y,self.size,self.col)
 	end
 }
 -->8
 --groups
 groups={
- {coworker,coworker,coworker},
- {coworker,coworker},
- {coworker,watercooler,coworker},
- {server,server,server},
- {cabinet,cabinet},
- {dog},
- {coworker},
- {cabinet},
- {server},
- {watercooler}
+	{coworker,coworker,coworker},
+	{coworker,coworker},
+	{coworker,watercooler,coworker},
+	{server,server,server},
+	{cabinet,cabinet},
+	{dog},
+	{coworker},
+	{cabinet},
+	{server},
+	{watercooler}
 }
 
 function spawn()
- local obs=groups[ceil(rnd(#groups))]
- if #obs==1 then
-  obs[1]:new{cb=spawn}
- else
-  for i,o in pairs(obs) do
-   timer:new{
-    term=.9*(i-1)+spd/80,
-    cb=function()
-     o:new{cb=(i==#obs and spawn or nil)}
-    end
-   }
-  end
- end
+	local obs=groups[ceil(rnd(#groups))]
+	if #obs==1 then
+		obs[1]:new{cb=spawn}
+	else
+		for i,o in pairs(obs) do
+			timer:new{
+				term=.9*(i-1)+spd/80,
+				cb=function()
+					o:new{cb=(i==#obs and spawn or nil)}
+				end
+			}
+		end
+	end
 end
---
---spawn=cocreate(function()
--- local last=0
--- while true do
---  if rnd()>.4 or clock.now-last>1 then
---		 timer:new{
---		  term=.75,
---		  cb=function()
---		   if rnd()>.7 then
---		    if rnd()>.7 then
---		     dog:new()
---		    else
---			    local obs={watercooler,server,cabinet}
--- 			   obs[ceil(rnd()*3)]:new()
--- 			  end
--- 			 else
--- 			  coworker:new()
--- 			 end
---		  end
---		 }
---		end
---		last=clock.now
---		yield()
---	end
---end)
 -->8
 --juice
 particle=class:new{
- t=1,
- size=3,
- rate=20,
- col=6,
- x=64,
- dx=1,
- y=82,
- dy=0,
- init=function(self)
-  add(self.area,self)
- end,
- update=function(self)
-  self.t-=clock.dt
-  self.x+=self.dx*(rnd()>0.5 and -1 or 1)
-  self.x-=spd*clock.dt
-  self.y-=self.dy*(rnd()>0.3 and 1 or 0)
-  self.size-=clock.dt*self.rate
-  if (self.t<=0 or self.size<1) del(self.area,self)
- end,
- draw=function(self)
-  circfill(self.x,self.y,flr(self.size),self.col)
- end,
+	t=1,
+	size=3,
+	rate=20,
+	col=6,
+	x=64,
+	dx=1,
+	y=82,
+	dy=0,
+	init=function(self)
+		add(self.area,self)
+	end,
+	update=function(self)
+		self.t-=clock.dt
+		self.x+=self.dx*(rnd()>0.5 and -1 or 1)
+		self.x-=spd*clock.dt
+		self.y-=self.dy*(rnd()>0.3 and 1 or 0)
+		self.size-=clock.dt*self.rate
+		if (self.t<=0 or self.size<1) del(self.area,self)
+	end,
+	draw=function(self)
+		circfill(self.x,self.y,flr(self.size),self.col)
+	end,
 }
 
 fire=particle:new{
- size=4,
- rate=10,
- t=1,
- dy=0.3,
- dy=3,
+	size=4,
+	rate=10,
+	t=1,
+	dy=0.3,
+	dy=3,
 }
 
 fireworks=class:new{
- sparks={},
- init=function(self)
-  function self.new(self,o)
-   o=o or {}
-   self.__index=self
-   setmetatable(o,self)
-   for i=1,(o.size or 35) do
-    add(o.sparks,{
-     x=o.x,
-     y=o.y,
-     dx=rnd(30)-15,
-     dy=rnd(30)-15,
-     col=flr(rnd(8))+8,
-     t=rnd(100)
-    })
-   end
-   add(foreground,o)
-   return o
-  end
- end,
- update=function(self)
-  foreach(self.sparks,function(spark)
-	  spark.x+=spark.dx*clock.dt
-	  spark.y+=spark.dy*clock.dt
-	  spark.dy+=.05
-	  spark.t-=1
-	  if (spark.t<=0) del(self.sparks,spark)
-	 end)
-	 if (#self.sparks==0) del(foreground,self)
- end,
- draw=function(self)
-  foreach(self.sparks,function(spark)
-  	pset(spark.x,spark.y,spark.col)
-  end)
- end
+	sparks={},
+	init=function(self)
+		function self.new(self,o)
+			o=o or {}
+			self.__index=self
+			setmetatable(o,self)
+			for i=1,(o.size or 35) do
+				add(o.sparks,{
+					x=o.x,
+					y=o.y,
+					dx=rnd(30)-15,
+					dy=rnd(30)-15,
+					col=flr(rnd(8))+8,
+					t=rnd(100)
+				})
+			end
+			add(foreground,o)
+			return o
+		end
+	end,
+	update=function(self)
+		foreach(self.sparks,function(spark)
+			spark.x+=spark.dx*clock.dt
+			spark.y+=spark.dy*clock.dt
+			spark.dy+=.05
+			spark.t-=1
+			if (spark.t<=0) del(self.sparks,spark)
+		end)
+		if (#self.sparks==0) del(foreground,self)
+	end,
+	draw=function(self)
+		foreach(self.sparks,function(spark)
+	pset(spark.x,spark.y,spark.col)
+		end)
+	end
 }
 
 shadow=class:new{
- pals={
-  {2,8,14},
-  {4,9,15},
-  {13,12,6}
- },
- init=function(self)
-  function self.new(self,o)
-   o=o or {}
-   self.__index=self
-   setmetatable(o,self)
-   o:init()
-   o.x=player.x
-   o.y=player.y
-   o.sprite=player.frames.active[player.animstep]
-   o.col=ceil(rnd(3))
-   add(rearmidground,o)
-   return o
-  end
- end,
- update=function(self)
-  self.x-=spd*clock.dt
-  if (self.x<=8) del(rearmidground,self)
- end,
- draw=function(self)
-  local p1={1,3,13}
-  local p2=self.pals[self.col]
-  for i=1,3 do
-   pal(p1[i],p2[i])
-  end
-  spr(self.sprite,self.x,self.y,2,2)
-  for i=1,3 do
-   pal(p1[i],p1[i])
-  end
- end
+	pals={
+		{2,8,14},
+		{4,9,15},
+		{13,12,6}
+	},
+	init=function(self)
+		function self.new(self,o)
+			o=o or {}
+			self.__index=self
+			setmetatable(o,self)
+			o:init()
+			o.x=player.x
+			o.y=player.y
+			o.sprite=player.frames.active[player.animstep]
+			o.col=ceil(rnd(3))
+			add(rearmidground,o)
+			return o
+		end
+	end,
+	update=function(self)
+		self.x-=spd*clock.dt
+		if (self.x<=8) del(rearmidground,self)
+	end,
+	draw=function(self)
+		local p1={1,3,13}
+		local p2=self.pals[self.col]
+		for i=1,3 do
+			pal(p1[i],p2[i])
+		end
+		spr(self.sprite,self.x,self.y,2,2)
+		for i=1,3 do
+			pal(p1[i],p1[i])
+		end
+	end
 }
 -->8
 --intro
 intro_scene=cocreate(function()
 repeat
-  yield()
-  yield()
-	 highscore={
-	  kvalue=dget(0),
-	  hvalue=dget(1)
-	 }
-	 has_score=dget(2)~=0
-  local title_office=title_office:new()
-	 local title_escape=title_escape:new()
-	 do
-		 local m=1
-		 repeat
-		  title_office.y=min(title_office.y+clock.dt*10*m,36)
-		  m*=1.04
-		  yield()
-		  title_office:draw()
-		  yield()
-		 until title_office.y==36 or btnp(4)
-		 title_office.y=36
+		yield()
+		yield()
+		highscore={
+			kvalue=dget(0),
+			hvalue=dget(1)
+		}
+		has_score=dget(2)~=0
+		local title_office=title_office:new()
+		local title_escape=title_escape:new()
+		do
+			local m=1
+			repeat
+				title_office.y=min(title_office.y+clock.dt*10*m,36)
+				m*=1.04
+				yield()
+				title_office:draw()
+				yield()
+			until title_office.y==36 or btnp(4)
+			title_office.y=36
 		end
 		do
-		 local m=1
-		 local target=centerx("e s c a p e")
-	  repeat
-	   title_escape.x=min(title_escape.x+clock.dt*10*m,target)
-	   m*=1.4
-	   yield()
-	   title_office:draw()
-	   title_escape:draw()
-	   yield()
-	  until title_escape.x==target or btnp(4)
-	  title_escape.x=target
-	 end
-	 do
-		 local wait=clock.now+1
-		 repeat	  
-		  yield()
-		  title_office:draw()
-		  title_escape:draw()
-		  yield()
-		 until clock.now>wait or btn(4)
+			local m=1
+			local target=centerx("e s c a p e")
+			repeat
+		title_escape.x=min(title_escape.x+clock.dt*10*m,target)
+		m*=1.4
+		yield()
+		title_office:draw()
+		title_escape:draw()
+		yield()
+			until title_escape.x==target or btnp(4)
+			title_escape.x=target
 		end
 		do
-		 local wavy={}
-		 local str1="🅾️  to start"
-		 local strx=centerx(str1)
-	  local hs=tostr(highscore.kvalue>0 and highscore.kvalue or "")..tostr(highscore.hvalue).."00"
-		 for i=1,#str1 do
-		  local c=sub(str1,i,i)
-		  add(wavy,{c=c,x=strx+4*(i-1),y=80})
-		 end
-		 repeat
-		  for i,char in pairs(wavy) do
-		   char.y=(has_score and 70 or 80)+cos(clock.now+i*(1/#wavy))*1.4
-		  end
-		  yield()
-		  title_office:draw()
-		  title_escape:draw()
-		  for i,char in pairs(wavy) do
-		   print(char.c,char.x,char.y,1)
-		  end
-		  if has_score then
-			  local str1=small("best")
-			  print(str1,centerx(str1),82,1)
-			  print(hs,centerx(hs),88,1)
+			local wait=clock.now+1
+			repeat
+				yield()
+				title_office:draw()
+				title_escape:draw()
+				yield()
+			until clock.now>wait or btn(4)
+		end
+		do
+			local wavy={}
+			local str1="\x8e  to start"
+			local strx=centerx(str1)
+			local hs=tostr(highscore.kvalue>0 and highscore.kvalue or "")..tostr(highscore.hvalue).."00"
+			for i=1,#str1 do
+				local c=sub(str1,i,i)
+				add(wavy,{c=c,x=strx+4*(i-1),y=80})
+			end
+			repeat
+				for i,char in pairs(wavy) do
+			char.y=(has_score and 70 or 80)+cos(clock.now+i*(1/#wavy))*1.4
 				end
-		  yield()
-		 until btnp(4)
+				yield()
+				title_office:draw()
+				title_escape:draw()
+				for i,char in pairs(wavy) do
+			print(char.c,char.x,char.y,1)
+				end
+				if has_score then
+					local str1=small("best")
+					print(str1,centerx(str1),82,1)
+					print(hs,centerx(hs),88,1)
+				end
+				yield()
+			until btnp(4)
 		end
 		do
-		 local wait=clock.now+0.1
-		 repeat yield() until clock.now>=wait
-		 music(-1)
-		 music(0)
-		 game_start()
-	 end
+			local wait=clock.now+0.1
+			repeat yield() until clock.now>=wait
+			music(-1)
+			music(0)
+			game_start()
+		end
 	until false
 end)
 
 function intro_update()
- clock:update()
- if costatus(intro_scene)~="dead" then
-  coresume(intro_scene)
- end
+	clock:update()
+	if costatus(intro_scene)~="dead" then
+		coresume(intro_scene)
+	end
 end
 
 function intro_draw()
- cls(1)
- rectfill(24,24,104,104,15)
- if costatus(intro_scene)~="dead" then
-  coresume(intro_scene)
- end
- rectfill(0,24,24,104,1) -- blinders
- rectfill(104,24,127,104,1) -- blinders
- rectfill(24,0,104,24,1) -- blinders
+	cls(1)
+	rectfill(24,24,104,104,15)
+	if costatus(intro_scene)~="dead" then
+		coresume(intro_scene)
+	end
+	rectfill(0,24,24,104,1) -- blinders
+	rectfill(104,24,127,104,1) -- blinders
+	rectfill(24,0,104,24,1) -- blinders
 end
 -->8
 --gameplay
 
 function game_update()
- clock:update()
- if stat(18)==9 and stat(19)==15 then
-  if (stat(23)==31) music(13)
- end
- spd=50+10*(score.kvalue*10+score.hvalue-spdmod)*clock.dt
- if flr(clock.now)~=flr(clock.old) and #foreground<4 then
-  if (rnd()>.5) silouette:new{spd=rnd()+1.3}
- end
- for group in all{timers,foreground,rearmidground,midground,background} do
-  for x in all(group) do
-   if (x.update) x:update()
-  end
- end
- if (clock.now>tiptime+7) tip=""
- player:update()
- score:update()
+	clock:update()
+	if stat(18)==9 and stat(19)==15 then
+		if (stat(23)==31) music(13)
+	end
+	spd=50+10*(score.kvalue*10+score.hvalue-spdmod)*clock.dt
+	if flr(clock.now)~=flr(clock.old) and #foreground<4 then
+		if (rnd()>.5) silouette:new{spd=rnd()+1.3}
+	end
+	for group in all{timers,foreground,rearmidground,midground,background} do
+		for x in all(group) do
+			if (x.update) x:update()
+		end
+	end
+	if (clock.now>tiptime+7) tip=""
+	player:update()
+	score:update()
 end
 
 function game_draw()
- cls(1)
- rectfill(24,24,104,104,15)
- line(24,60,104,60,1)
- for group in all{timers,background,rearmidground,midground} do
-  for x in all(group) do
-   if (x.draw) x:draw()
-  end
- end
- player:draw()
- for x in all(foreground) do x:draw() end
--- clock:draw() --top left
- rectfill(0,24,24,104,1) -- blinders
- rectfill(104,24,127,104,1) -- blinders
- if debug then
-	 print(#background,10,111,7) --bottom left
-	 print(#rearmidground,20,111,7) --bottom left
-	 print(#midground,30,111,7) --bottom left
-	 print(#foreground,40,111,7) --bottom left
-  line(48,24,48,104,11)
-  line(24,player.y+12,104,player.y+12,12)
-  print(flr(spd),10,117,7) -- bottom left
-  print(clock.now,10,123,7) -- bottom left
+	cls(1)
+	rectfill(24,24,104,104,15)
+	line(24,60,104,60,1)
+	for group in all{timers,background,rearmidground,midground} do
+		for x in all(group) do
+			if (x.draw) x:draw()
+		end
+	end
+	player:draw()
+	for x in all(foreground) do x:draw() end
+	rectfill(0,24,24,104,1) -- blinders
+	rectfill(104,24,127,104,1) -- blinders
+	if debug then
+		print(#background,10,111,7) --bottom left
+		print(#rearmidground,20,111,7) --bottom left
+		print(#midground,30,111,7) --bottom left
+		print(#foreground,40,111,7) --bottom left
+		line(48,24,48,104,11)
+		line(24,player.y+12,104,player.y+12,12)
+		print(flr(spd),10,117,7) -- bottom left
+		print(clock.now,10,123,7) -- bottom left
 	end
 	score:draw()
 	outline(tip,33,103,1,15)
@@ -813,40 +786,40 @@ end
 -->8
 --gameover
 gameover_scene=cocreate(function()
- repeat
-	 yield()
-	 foreground={}
-	 newhighscore=nil
-  if score.kvalue>highscore.kvalue or (score.kvalue==highscore.kvalue and score.hvalue>highscore.hvalue) then
-   dset(0,score.kvalue)
-   dset(1,score.hvalue)
-   newhighscore=true
-   music(12)
-  end
-	 repeat
-	  yield()
-	  yield()
-	 until stat(16)~=16
-	 if (not newhighscore) sfx(24)
-	 repeat
-	  if newhighscore then
-		  foreach(foreground,function(fworks)
-		   fworks:update()
-		  end)
-		  if (flr(clock.now)~=flr(clock.old)) fireworks:new{x=rnd(79)+24,y=rnd(79)+24,size=flr(rnd(25))+10}
-		 end
-		 yield()
-		 print("game over",centerx("game over"),newhighscore and 48 or 63,1)
-		 if newhighscore then
-		  local str1="new high score"
-		  local score=score or {value="hello"}
-		  print(str1,centerx(str1),63,1)
-		  print(score.value,centerx(score.value),78,1)
-		  foreach(foreground,function(fworks)
-		   fworks:draw()
-		  end)
-		 end
-		 yield()
+	repeat
+		yield()
+		foreground={}
+		newhighscore=nil
+		if score.kvalue>highscore.kvalue or (score.kvalue==highscore.kvalue and score.hvalue>highscore.hvalue) then
+			dset(0,score.kvalue)
+			dset(1,score.hvalue)
+			newhighscore=true
+			music(12)
+		end
+		repeat
+			yield()
+			yield()
+		until stat(16)~=16
+		if (not newhighscore) sfx(24)
+		repeat
+			if newhighscore then
+				foreach(foreground,function(fworks)
+			fworks:update()
+				end)
+				if (flr(clock.now)~=flr(clock.old)) fireworks:new{x=rnd(79)+24,y=rnd(79)+24,size=flr(rnd(25))+10}
+			end
+			yield()
+			print("game over",centerx("game over"),newhighscore and 48 or 63,1)
+			if newhighscore then
+				local str1="new high score"
+				local score=score or {value="hello"}
+				print(str1,centerx(str1),63,1)
+				print(score.value,centerx(score.value),78,1)
+				foreach(foreground,function(fworks)
+			fworks:draw()
+				end)
+			end
+			yield()
 		until btnp(4)
 		music(-1)
 		sfx(-1)
@@ -858,60 +831,60 @@ gameover_scene=cocreate(function()
 end)
 
 function gameover_update()
- clock:update()
- coresume(gameover_scene)
+	clock:update()
+	coresume(gameover_scene)
 end
 
 function gameover_draw()
- cls(1)
- rectfill(24,24,104,104,15)
- coresume(gameover_scene)
+	cls(1)
+	rectfill(24,24,104,104,15)
+	coresume(gameover_scene)
 end
 -->8
 function _init()
 -- debug=true
- cartdata("office_escape")
- if debug then
-	 dset(0,0)
-	 dset(1,0)
-	 dset(2,0)
+	cartdata("office_escape")
+	if debug then
+		dset(0,0)
+		dset(1,0)
+		dset(2,0)
 	end
- highscore={
-  kvalue=dget(0),
-  hvalue=dget(1)
- }
- has_score=dget(2)~=0
- if not debug then
-	 if highscore.kvalue<2 then
-	  dset(0,2)
-	  highscore.kvalue=2
-	 end
+	highscore={
+		kvalue=dget(0),
+		hvalue=dget(1)
+	}
+	has_score=dget(2)~=0
+	if not debug then
+		if highscore.kvalue<2 then
+			dset(0,2)
+			highscore.kvalue=2
+		end
 	end
- palt(14,true)
- palt(0,false)
- music(13)
-	tip="press 🅾️ to jump"
- 
- _update=intro_update
- _draw=intro_draw
+	palt(14,true)
+	palt(0,false)
+	music(13)
+	tip="press \x8e to jump"
+
+	_update=intro_update
+	_draw=intro_draw
 end
 
 function game_start()
- score=scorekeeper:new()
- spd=40
- spdmod=0
- player.boost=0
-	tip="press 🅾️ to jump"
+	score=scorekeeper:new()
+	spd=40
+	spdmod=0
+	player.boost=0
+	tip="press \x8e to jump"
 	tiptime=clock.now
- foreground={}
- rearmidground={}
- midground={}
- background={}
- timers={}
- spawnbg()
- spawn()
- _update=game_update
- _draw=game_draw
+	foreground={}
+	rearmidground={}
+	midground={}
+	background={}
+	timers={}
+	spawnbg()
+	spawn()
+	_update=game_update
+	_draw=game_draw
 end
 __gfx__
 eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
