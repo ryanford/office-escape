@@ -778,6 +778,7 @@ function game_update()
    if (x.update) x:update()
   end
  end
+ if (clock.now>tiptime+7) tip=""
  player:update()
  score:update()
 end
@@ -807,6 +808,7 @@ function game_draw()
   print(clock.now,10,123,7) -- bottom left
 	end
 	score:draw()
+	outline(tip,33,103,1,15)
 end
 -->8
 --gameover
@@ -888,6 +890,7 @@ function _init()
  palt(14,true)
  palt(0,false)
  music(13)
+	tip="press 🅾️ to jump"
  
  _update=intro_update
  _draw=intro_draw
@@ -898,6 +901,8 @@ function game_start()
  spd=40
  spdmod=0
  player.boost=0
+	tip="press 🅾️ to jump"
+	tiptime=clock.now
  foreground={}
  rearmidground={}
  midground={}
