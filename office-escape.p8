@@ -897,7 +897,7 @@ function game_start()
  score=scorekeeper:new()
  spd=40
  spdmod=0
- boost=0
+ player.boost=0
  foreground={}
  rearmidground={}
  midground={}
