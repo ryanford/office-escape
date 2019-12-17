@@ -809,16 +809,15 @@ gameover_scene=cocreate(function()
 				if (flr(clock.now)~=flr(clock.old)) fireworks:new{x=rnd(79)+24,y=rnd(79)+24,size=flr(rnd(25))+10}
 			end
 			yield()
-			print("game over",centerx("game over"),newhighscore and 48 or 63,1)
+			print("game over",centerx("game over"),newhighscore and 48 or 56,1)
 			if newhighscore then
 				local str1="new high score"
-				local score=score or {value="hello"}
 				print(str1,centerx(str1),63,1)
-				print(score.value,centerx(score.value),78,1)
 				foreach(foreground,function(fworks)
-			fworks:draw()
+					fworks:draw()
 				end)
 			end
+			print(score.value,centerx(score.value),newhighscore and 78 or 72,1)
 			yield()
 		until btnp(4)
 		music(-1)
